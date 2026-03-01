@@ -20,6 +20,6 @@ This is my current project wich I'm still working. The primary objective is to b
 If you found a issue or would like to submit a improvement to this project, please use de issue tab below to let me know. At the moment, no issue finded :)
 
 ## TODOs
-    - Start the software project
-    - Finish the Installation of the project of the README 
-    - Add the confusion matrix of the model in the intro pharagraph
+   * Start the software project
+   * Finish the Installation of the project of the README 
+   * Add the confusion matrix of the model in the intro pharagraph
