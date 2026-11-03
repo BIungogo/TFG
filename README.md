@@ -1,25 +1,94 @@
-# Neuronal-Network model for clasify trash in embedded systems
+# Papelera Inteligente Automatizada basada en Visión por Computador y Edge AI (TFG)
 
-## This is my final degree project based on design and implementation of a computer vision system for classify trash optimized for low-sources systems
+Repositorio oficial del Trabajo de Fin de Grado (TFG) centrado en el diseño, desarrollo e implementación de un sistema autónomo de clasificación de residuos mediante **Visión por Computador** y **Aprendizaje Profundo (*Deep Learning*)** ejecutado directamente en sistemas embebidos de bajo coste y consumo (**Edge AI**).
 
-This is my current project wich I'm still working. The primary objective is to built a neuronal-network (probably a CNN) able to clasify the diferents tipes of trash better then the humans do. This model will be optimizated and simplificaded in order to run in a ambebed systems like Rasberri PI or ESP-32 in no more than 5-10s of clasification.
+---
 
-## Installation
- Not yet
+## 1. Motivación y Problema a Resolver
 
-## Contributing
- I would love if you tweak this model for your own project, meke a fork of the project and share it with us.
-  
-  1. Fork it
-  2. Create your feature branch: 
-  3. Commit your changes
-  4. Push to the breanch
-  5. Submit a pull request
+En espacios públicos con un elevado tránsito de personas (como centros comerciales, aeropuertos, estaciones o parques), la separación selectiva de residuos falla principalmente debido al error humano, la falta de tiempo o el desconocimiento de las normativas locales de reciclaje. En estos entornos urbanos, **la efectividad de la separación manual se sitúa en apenas un 20%**, lo que contamina las fracciones reciclables y dificulta enormemente su posterior tratamiento.
 
-## Find a bug?
-If you found a issue or would like to submit a improvement to this project, please use de issue tab below to let me know. At the moment, no issue finded :)
+## 2. Propuesta del Proyecto
 
-## TODOs
-   * Start the software project
-   * Finish the Installation of the project of the README 
-   * Add the confusion matrix of the model in the intro pharagraph
+El objetivo de este proyecto es el diseño y desarrollo de una **papelera inteligente automatizada** capaz de identificar y clasificar de forma autónoma **cinco tipos de residuos**:
+
+1. **Plástico / Aluminio** (Envases ligeros)
+2. **Orgánico**
+3. **Papel / Cartón**
+4. **Vidrio**
+5. **Resto** (Fracción no reciclable)
+
+---
+
+## 3. Arquitectura Técnica
+
+### Inteligencia Artificial y Visión por Computador
+El sistema emplea técnicas de visión artificial y aprendizaje profundo (*Deep Learning*) mediante el entrenamiento de **redes neuronales convolucionales (CNN) ligeras**, diseñadas para extraer características visuales de los residuos capturados y clasificarlos con alta precisión.
+
+### Particularidad Técnica: Edge AI en Microcontrolador
+En lugar de depender de una conexión permanente para enviar las imágenes a un servidor externo en la nube, el modelo neuronal se **optimiza y comprime** (aplicando técnicas como la **cuantización**) para ejecutarse de manera 100% local, rápida y eficiente en un microcontrolador de bajo coste y reducido consumo energético:
+- **Microcontrolador:** **ESP32-S3** (Módulo **Freenove ESP32-S3 WROOM** con **8 MB de memoria Flash** y **8 MB de PSRAM**).
+- **Sensor de imagen:** Cámara **OmniVision OV2640**.
+
+### Soporte Físico y Prototipo Funcional
+El proyecto abarca también el desarrollo mecánico y electrónico de un prototipo funcional autónomo:
+- **Diseño CAD:** Modelado tridimensional íntegro en **Onshape**.
+- **Manufactura Aditiva:** Fabricación mediante impresión 3D con tecnología **FDM en material PLA**, laminado y parametrizado en **OrcaSlicer**.
+- **Integración Electrónica:** Estructura diseñada a medida que aloja el módulo ESP32-S3 y la cámara OV2640, un **pulsador externo** para activar la captura de imágenes, almacenamiento en tarjeta microSD y un **módulo de batería de litio 18650** que dota al sistema de autonomía energética.
+
+---
+
+## 4. Estructura del Repositorio
+
+Actualmente, el repositorio contiene los módulos correspondientes a la fase de adquisición de datos y el conjunto de imágenes capturadas con el prototipo:
+
+```text
+├── Codigos/
+│   ├── Data_adquisition/
+│   │   └── Data_adquisition.ino       # Firmware de adquisición de imágenes (versión base)
+│   └── Data_adquisition_2.0/
+│       └── Data_adquisition_2.0.ino   # Firmware de adquisición con ajustes de configuración en Arduino IDE
+├── dataset/
+│   └── residuos_*.jpg                 # Dataset propio de 810 imágenes capturadas con la cámara OV2640
+├── .gitignore
+└── README.md
+```
+
+### Funcionamiento del Firmware de Adquisición (`Data_adquisition`)
+El código implementado para el ESP32-S3 realiza las siguientes tareas:
+- **Lectura con antirrebote (*debounce*):** Detecta la pulsación del botón externo conectado al `GPIO 1`.
+- **Estabilización óptica del sensor (AWB/AEC):** Antes de tomar la fotografía definitiva, descarta los primeros 4 *frames* del búfer para permitir que el sensor OV2640 estabilice el balance de blancos y la exposición automática.
+- **Captura en alta resolución aprovechando la PSRAM:** Si detecta la memoria PSRAM activa, captura en resolución `UXGA` con alta calidad JPEG.
+- **Almacenamiento en microSD (`SD_MMC`) y persistencia en Flash (`NVS`):** Guarda cada imagen bajo el formato `/dataset/residuos_<N>.jpg` en la tarjeta microSD y almacena el contador `N` en la memoria no volátil (NVS) del ESP32-S3 mediante la librería `Preferences`, evitando sobrescribir imágenes tras reinicios o apagados.
+
+---
+
+## 5. Configuración en Arduino IDE
+
+Para compilar y cargar correctamente el firmware en el módulo **Freenove ESP32-S3 WROOM** desde el entorno **Arduino IDE**, es fundamental aplicar la siguiente configuración en el menú `Herramientas` (*Tools*):
+
+| Parámetro en Arduino IDE | Valor Configurado |
+| :--- | :--- |
+| **Board** | `ESP32S3 Dev Module` |
+| **USB CDC On Boot** | `Disabled` |
+| **CPU Frequency** | `240MHz (WiFi)` |
+| **Core Debug Level** | `None` |
+| **USB DFU On Boot** | `Disabled` |
+| **Erase All Flash Before Sketch Upload** | `Disabled` |
+| **Events Run On** | `Core 1` |
+| **Flash Mode** | `QIO 80MHz` |
+| **Flash Size** | `4MB (32Mb)` |
+| **JTAG Adapter** | `Disabled` |
+| **Arduino Runs On** | `Core 1` |
+| **USB Firmware MSC On Boot** | `Disabled` |
+| **Partition Scheme** | `Default 4MB with spiffs (1.2MB APP/1.5MB SPIFFS)` |
+| **PSRAM** | `OPI PSRAM` |
+| **Upload Mode** | `UART0 / Hardware CDC` |
+| **Upload Speed** | `921600` |
+| **USB Mode** | `Hardware CDC and JTAG` |
+| **Zigbee Mode** | `Disabled` |
+
+### Asignación de Pines (Freenove ESP32-S3 WROOM CAM)
+- **Pulsador de captura:** `GPIO 1` (configurado con resistencia interna `INPUT_PULLUP`).
+- **Interfaz microSD (`SD_MMC`):** `CMD = GPIO 38`, `CLK = GPIO 39`, `D0 = GPIO 40`.
+- **Cámara OV2640:** Pines predefinidos del bus de cámara Freenove (`XCLK = 15`, `SIOD = 4`, `SIOC = 5`, `VSYNC = 6`, `HREF = 7`, `PCLK = 13`, `Y2..Y9 = 11, 9, 8, 10, 12, 18, 17, 16`).
