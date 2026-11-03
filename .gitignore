@@ -1,0 +1,56 @@
+# ==========================================
+# Seguridad y variables de entorno (Zero-Exposure)
+# ==========================================
+.env
+*.env
+.env.*
+secrets.h
+ wifi_credentials.h
+*secret*
+*credentials*
+
+# ==========================================
+# Compilación y temporales del toolchain (Arduino / ESP-IDF / PlatformIO)
+# ==========================================
+build/
+.pio/
+.arduino/
+*.bin
+*.elf
+*.map
+*.hex
+*.o
+*.a
+*.d
+sdkconfig.old
+
+# ==========================================
+# Entornos virtuales y dependencias (Python / Node)
+# ==========================================
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+node_modules/
+
+# ==========================================
+# Archivos de sistema e IDE
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# ==========================================
+# Archivos y carpetas locales del proyecto (excluidos por ahora)
+# ==========================================
+CAD/
+Fuentes/
+Imágenes/
+Sensor cámara/
+2.-Recomendaciones-para-la-redaccion-de-la-propuesta-de-TFGTFM-1.pdf
+eim_config.toml
+funciones.py
+funciones_activacion.png
