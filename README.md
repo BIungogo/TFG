@@ -40,16 +40,26 @@ El proyecto abarca también el desarrollo mecánico y electrónico de un prototi
 
 ## 4. Estructura del Repositorio
 
-Actualmente, el repositorio contiene los módulos correspondientes a la fase de adquisición de datos y el conjunto de imágenes capturadas con el prototipo:
+Actualmente, el repositorio contiene los módulos correspondientes a la fase de adquisición de datos, la herramienta gráfica de etiquetado y el conjunto de imágenes tanto en bruto como clasificadas por categorías:
 
 ```text
 ├── Codigos/
 │   ├── Data_adquisition/
 │   │   └── Data_adquisition.ino       # Firmware de adquisición de imágenes (versión base)
-│   └── Data_adquisition_2.0/
-│       └── Data_adquisition_2.0.ino   # Firmware de adquisición con ajustes de configuración en Arduino IDE
+│   ├── Data_adquisition_2.0/
+│   │   └── Data_adquisition_2.0.ino   # Firmware de adquisición con ajustes de configuración en Arduino IDE
+│   └── etiquetador.py                 # Herramienta gráfica interactiva (Tkinter) para clasificar el dataset
 ├── dataset/
-│   └── residuos_*.jpg                 # Dataset propio de 810 imágenes capturadas con la cámara OV2640
+│   └── residuos_*.jpg                 # Dataset en bruto de imágenes capturadas con la cámara OV2640
+├── dataset_clasificado/
+│   ├── carton_papel/                  # Imágenes etiquetadas como Cartón / Papel (193 imágenes)
+│   ├── organico/                      # Imágenes etiquetadas como Orgánico (150 imágenes)
+│   ├── plastico_metal/                # Imágenes etiquetadas como Plástico / Metal (295 imágenes)
+│   ├── vidrio/                        # Imágenes etiquetadas como Vidrio (122 imágenes)
+│   ├── resto/                         # Imágenes etiquetadas como Resto (149 imágenes)
+│   ├── rechazadas/                    # Imágenes descartadas durante el filtrado (31 imágenes)
+│   └── registro_etiquetas.csv         # Registro histórico de clasificación con marca temporal
+├── ejecutar_etiquetador.bat           # Script de acceso directo para lanzar el etiquetador en Windows
 ├── .gitignore
 └── README.md
 ```
@@ -60,6 +70,12 @@ El código implementado para el ESP32-S3 realiza las siguientes tareas:
 - **Estabilización óptica del sensor (AWB/AEC):** Antes de tomar la fotografía definitiva, descarta los primeros 4 *frames* del búfer para permitir que el sensor OV2640 estabilice el balance de blancos y la exposición automática.
 - **Captura en alta resolución aprovechando la PSRAM:** Si detecta la memoria PSRAM activa, captura en resolución `UXGA` con alta calidad JPEG.
 - **Almacenamiento en microSD (`SD_MMC`) y persistencia en Flash (`NVS`):** Guarda cada imagen bajo el formato `/dataset/residuos_<N>.jpg` en la tarjeta microSD y almacena el contador `N` en la memoria no volátil (NVS) del ESP32-S3 mediante la librería `Preferences`, evitando sobrescribir imágenes tras reinicios o apagados.
+
+### Herramienta Interactiva de Etiquetado (`etiquetador.py`)
+Aplicación de escritorio desarrollada en Python (`Tkinter` + `Pillow`) para agilizar la clasificación manual de las capturas:
+- Permite clasificar cada imagen mediante botones en pantalla o atajos de teclado (`1`–`5` para las 5 clases de residuos y `R` para rechazar capturas defectuosas).
+- Filtra automáticamente las imágenes que ya han sido etiquetadas previamente para procesar únicamente las pendientes.
+- Organiza las imágenes en subcarpetas dentro de `dataset_clasificado/` (estructura compatible con *DataLoaders* de PyTorch y TensorFlow/Keras) y mantiene un registro detallado en `registro_etiquetas.csv` con soporte para deshacer acciones (`Ctrl+Z`).
 
 ---
 
