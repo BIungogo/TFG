@@ -60,12 +60,18 @@ class EtiquetadorApp:
         # Pila de historial para la función 'Deshacer'
         self.historial_acciones = []
 
-        # Cargar imágenes pendientes
+        # Identificar imágenes ya clasificadas y pendientes
+        self.imagenes_ya_etiquetadas = self.obtener_imagenes_ya_etiquetadas()
         self.imagenes_pendientes = self.obtener_imagenes_pendientes()
 
         # Conteo inicial de imágenes ya etiquetadas en output_dir
         self.conteos = self.obtener_conteos_actuales()
-        self.total_inicial = len(self.imagenes_pendientes) + sum(self.conteos.values())
+        total_etiquetadas_inicial = sum(self.conteos.values())
+        self.total_en_dataset = total_etiquetadas_inicial + len(self.imagenes_pendientes)
+
+        print(f"Total imágenes detectadas: {self.total_en_dataset}")
+        print(f" - Ya clasificadas previamente : {total_etiquetadas_inicial}")
+        print(f" - Nuevas pendientes por etiquetar: {len(self.imagenes_pendientes)}")
 
         # Variables de estado
         self.indice_actual = 0
@@ -82,17 +88,35 @@ class EtiquetadorApp:
         # Cargar primera imagen
         self.cargar_siguiente_imagen()
 
+    def obtener_imagenes_ya_etiquetadas(self):
+        """Obtiene el conjunto de nombres de archivos que ya están en las carpetas de clases."""
+        ya_etiquetadas = set()
+        for class_id, _, _, _ in CLASES:
+            carpeta = os.path.join(self.output_dir, class_id)
+            if os.path.exists(carpeta):
+                for f in os.listdir(carpeta):
+                    if os.path.splitext(f)[1].lower() in EXTENSIONES_VALIDAS:
+                        ya_etiquetadas.add(f)
+        return ya_etiquetadas
+
     def obtener_imagenes_pendientes(self):
-        """Busca todas las imágenes en la carpeta dataset."""
+        """Busca las imágenes en la carpeta dataset que aún NO han sido etiquetadas."""
         if not os.path.exists(self.dataset_dir):
             return []
-        archivos = [
+        
+        todos_los_archivos = [
             f for f in os.listdir(self.dataset_dir)
             if os.path.isfile(os.path.join(self.dataset_dir, f)) and
             os.path.splitext(f)[1].lower() in EXTENSIONES_VALIDAS
         ]
-        archivos.sort(key=natural_sort_key)
-        return archivos
+        
+        ya_etiquetadas = getattr(self, 'imagenes_ya_etiquetadas', None)
+        if ya_etiquetadas is None:
+            ya_etiquetadas = self.obtener_imagenes_ya_etiquetadas()
+
+        pendientes = [f for f in todos_los_archivos if f not in ya_etiquetadas]
+        pendientes.sort(key=natural_sort_key)
+        return pendientes
 
     def obtener_conteos_actuales(self):
         """Cuenta las imágenes que ya están en cada subcarpeta de destino."""
@@ -306,7 +330,7 @@ class EtiquetadorApp:
                 text=f"Imagen: {nombre_archivo} ({total_etiquetadas + 1} de {total_global})"
             )
             self.lbl_detalles.config(
-                text=f"Pendientes en cola: {len(self.imagenes_pendientes)}"
+                text=f"Pendientes: {len(self.imagenes_pendientes)} | Clasificadas: {total_etiquetadas}"
             )
 
             # Forzar actualización gráfica
